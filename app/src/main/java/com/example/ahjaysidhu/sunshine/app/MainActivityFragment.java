@@ -35,6 +35,8 @@ import java.util.Arrays;
  */
 public class MainActivityFragment extends Fragment {
 
+    ArrayAdapter<String> mForecastAdapter;
+
     public MainActivityFragment() {
     }
 
@@ -71,7 +73,7 @@ public class MainActivityFragment extends Fragment {
         ArrayList<String> weekForecast = new ArrayList<String>(
                 Arrays.asList("Today - Sunny - 88 / 63", "Tomorrow - Foggy - 70 / 46", "Weds - Cloudy - 72 / 63", "Thurs - Rainy - 64 / 51", "Fri - Foggy - 70 / 46", "Sat - Sunny - 76 / 68")
         );
-        ArrayAdapter<String> mForecastAdapter = new ArrayAdapter<String> (getActivity(),R.layout.list_item_forecast,R.id.list_item_forecast_textview,weekForecast);
+        mForecastAdapter = new ArrayAdapter<String> (getActivity(),R.layout.list_item_forecast,R.id.list_item_forecast_textview,weekForecast);
         ListView listView = (ListView) inflater.inflate(R.layout.fragment_main, container, false).findViewById(R.id.listview_forecast);
         listView.setAdapter(mForecastAdapter);
         return inflater.inflate(R.layout.fragment_main, container, false);
@@ -242,6 +244,8 @@ public class MainActivityFragment extends Fragment {
                     return null;
                 }
                 forecastJsonStr = buffer.toString();
+
+                Log.v(LOG_TAG, "Forecast string: " + forecastJsonStr);
             } catch (IOException e) {
                 Log.e("PlaceholderFragment", "Error ", e);
                 // If the code didn't successfully get the weather data, there's no point in attemping
@@ -259,7 +263,25 @@ public class MainActivityFragment extends Fragment {
                     }
                 }
             }
+
+            try {
+                return getWeatherDataFromJson(forecastJsonStr, numDays);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, e.getMessage(), e);
+                e.printStackTrace();
+            }
             return null;
+        }
+
+        @Override
+        protected  void onPostExecute(String[] result) {
+            if (result != null) {
+                mForecastAdapter.clear();
+                for (String dayForecastStr : result) {
+                    mForecastAdapter.add(dayForecastStr);
+                }
+                // New data is back from the server.  Hooray!
+            }
         }
     }
 }
